@@ -53,12 +53,7 @@ func StripeWebhook(logger *slog.Logger, repo repository.EventRepository, dispatc
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal"})
 		}
 
-		// Enqueue for processing
-		select {
-		case dispatcher.Enqueue(event.ID):
-		default:
-			logger.Error("dispatcher_queue_full", "event_id", event.ID)
-		}
+		dispatcher.Enqueue(event.ID)
 
 		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{"status": "received"})
 	}

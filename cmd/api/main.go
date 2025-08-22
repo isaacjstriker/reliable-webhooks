@@ -25,9 +25,10 @@ func main() {
 
 	db, err := storage.NewPostgres(ctx, cfg.DBURL)
 	if err != nil {
-		logger.Fatal("db_connect_error", "error", err)
+		logger.Error("db_connect_error", "error", err)
+		os.Exit(1)
 	}
-	defer db.Close(context.Background())
+	defer db.Close()
 
 	eventRepo := repository.NewEventRepository(db)
 	dispatcher := processing.NewDispatcher(eventRepo, logger)
@@ -48,7 +49,7 @@ func main() {
 	<-sigCh
 	logger.Info("shutdown_initiated")
 
-	shutdownCtx, scancel := context.WithTimeout(context.Background(), cfg.GracefulTimeout)
+	_, scancel := context.WithTimeout(context.Background(), cfg.GracefulTimeout)
 	defer scancel()
 
 	if err := app.Shutdown(); err != nil {
